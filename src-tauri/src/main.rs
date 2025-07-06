@@ -1325,6 +1325,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_os::init())
         .setup(|app| {
             let app_handle = app.handle().clone();
             let resource_path = app_handle.path()

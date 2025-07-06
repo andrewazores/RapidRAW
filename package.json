@@ -14,6 +14,7 @@
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-dialog": "^2.2.2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-os": "^2.3.0",
     "framer-motion": "^12.18.1",
     "konva": "^9.3.20",
     "lodash.debounce": "^4.0.8",
@@ -24,13 +25,16 @@
     "react-konva": "^18.2.10",
     "react-zoom-pan-pinch": "^3.7.0",
     "recharts": "^2.15.3",
+    "tauri-controls": "^0.4.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.5.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
+    "clsx": "^2.1.1",
     "postcss": "^8.5.5",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss": "^3.4.17",
     "vite": "^6.0.3"
   }
