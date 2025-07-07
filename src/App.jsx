@@ -1325,7 +1325,7 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-bg-primary font-sans text-text-primary overflow-hidden select-none">
-      <TitleBar />
+      <TitleBar controls={appSettings?.controls} />
       <div className={clsx(
         "flex-1 flex flex-col min-h-0",
         rootPath ? "pt-12 p-2 gap-2" : "pt-10"

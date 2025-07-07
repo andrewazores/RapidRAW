@@ -6,6 +6,7 @@ import ConfirmModal from '../modals/ConfirmModal';
 import Dropdown from '../ui/Dropdown';
 import Input from '../ui/Input';
 import { THEMES, DEFAULT_THEME_ID } from '../../themes';
+import { WINDOW_CONTROLS, DEFAULT_WINDOW_CONTROLS } from '../../window_controls';
 
 const resolutions = [
   { value: 720, label: '720px' },
@@ -157,6 +158,20 @@ export default function SettingsPanel({ onBack, appSettings, onSettingsChange, r
                 />
                 <p className="text-xs text-text-secondary mt-2">
                   Change the look and feel of the application.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="controls-select" className="block text-sm font-medium text-text-secondary mb-2">
+                  Controls
+                </label>
+                <Dropdown
+                  options={WINDOW_CONTROLS}
+                  value={appSettings?.controls ?? DEFAULT_WINDOW_CONTROLS.value}
+                  onChange={(value) => onSettingsChange({ ...appSettings, controls: value })}
+                />
+                <p className="text-xs text-text-secondary mt-2">
+                  Change how window controls appear.
                 </p>
               </div>
 
