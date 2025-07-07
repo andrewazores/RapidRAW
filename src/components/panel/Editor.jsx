@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import debounce from 'lodash.debounce';
 
-import { useImageRenderSize } from '../../hooks/useImageRenderSize';
+import { useImageRenderSize } from '@src/hooks/useImageRenderSize';
 
 import FullScreenViewer from './editor/FullScreenViewer';
 import EditorToolbar from './editor/EditorToolbar';

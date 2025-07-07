@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
-import { usePresets } from '../../../hooks/usePresets';
-import { useContextMenu } from '../../../context/ContextMenuContext';
+import { usePresets } from '@src/hooks/usePresets';
+import { useContextMenu } from '@src/context/ContextMenuContext';
 import { Plus, Loader2, FileUp, FileDown, Edit, Trash2, CopyPlus, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AddPresetModal from '../../modals/AddPresetModal';
-import RenamePresetModal from '../../modals/RenamePresetModal';
-import { INITIAL_ADJUSTMENTS } from '../../../App';
+import AddPresetModal from '@src/components/modals/AddPresetModal';
+import RenamePresetModal from '@src/components/modals/RenamePresetModal';
+import { INITIAL_ADJUSTMENTS } from '@src/App';
 
 const itemVariants = {
   hidden: { opacity: 0, x: -15 },

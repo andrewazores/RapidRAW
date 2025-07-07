@@ -11,9 +11,9 @@ import {
   Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '../ui/Button';
+import Button from '@src/components/ui/Button';
 import SettingsPanel from './SettingsPanel';
-import { THEMES, DEFAULT_THEME_ID } from '../../themes';
+import { THEMES, DEFAULT_THEME_ID } from '@src/themes';
 
 const sortOptions = [
   { key: 'name', order: 'asc', label: 'File Name (A-Z)' },

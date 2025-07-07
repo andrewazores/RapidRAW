@@ -1,12 +1,12 @@
 import { RotateCcw, Copy, ClipboardPaste } from 'lucide-react';
-import BasicAdjustments from '../../adjustments/Basic';
-import CurveGraph from '../../adjustments/Curves';
-import ColorPanel from '../../adjustments/Color';
-import DetailsPanel from '../../adjustments/Details';
-import EffectsPanel from '../../adjustments/Effects';
-import CollapsibleSection from '../../ui/CollapsibleSection';
-import { INITIAL_ADJUSTMENTS, ADJUSTMENT_SECTIONS } from '../../../App';
-import { useContextMenu } from '../../../context/ContextMenuContext';
+import BasicAdjustments from '@src/components/adjustments/Basic';
+import CurveGraph from '@src/components/adjustments/Curves';
+import ColorPanel from '@src/components/adjustments/Color';
+import DetailsPanel from '@src/components/adjustments/Details';
+import EffectsPanel from '@src/components/adjustments/Effects';
+import CollapsibleSection from '@src/components/ui/CollapsibleSection';
+import { INITIAL_ADJUSTMENTS, ADJUSTMENT_SECTIONS } from '@src/App';
+import { useContextMenu } from '@src/context/ContextMenuContext';
 
 export default function Controls({
   theme,

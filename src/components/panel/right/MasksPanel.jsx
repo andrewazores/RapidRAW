@@ -6,8 +6,8 @@ import {
   Trash2, RotateCcw, ArrowLeft, Eye, EyeOff, Edit, Copy, ClipboardPaste, PlusSquare
 } from 'lucide-react';
 import MaskControls from './MaskControls';
-import { INITIAL_MASK_ADJUSTMENTS } from '../../../App';
-import { useContextMenu } from '../../../context/ContextMenuContext';
+import { INITIAL_MASK_ADJUSTMENTS } from '@src/App';
+import { useContextMenu } from '@src/context/ContextMenuContext';
 
 const MASK_TYPES = [
   { id: 'ai-subject', name: 'Subject', icon: Sparkles, type: 'ai-subject', disabled: false },

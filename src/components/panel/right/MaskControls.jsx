@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { RotateCcw, Copy, ClipboardPaste } from 'lucide-react';
-import CollapsibleSection from '../../ui/CollapsibleSection';
-import Switch from '../../ui/Switch';
-import Slider from '../../ui/Slider';
+import CollapsibleSection from '@src/components/ui/CollapsibleSection';
+import Switch from '@src/components/ui/Switch';
+import Slider from '@src/components/ui/Slider';
 
-import BasicAdjustments from '../../adjustments/Basic';
-import CurveGraph from '../../adjustments/Curves';
-import ColorPanel from '../../adjustments/Color';
-import DetailsPanel from '../../adjustments/Details';
-import EffectsPanel from '../../adjustments/Effects';
+import BasicAdjustments from '@src/components/adjustments/Basic';
+import CurveGraph from '@src/components/adjustments/Curves';
+import ColorPanel from '@src/components/adjustments/Color';
+import DetailsPanel from '@src/components/adjustments/Details';
+import EffectsPanel from '@src/components/adjustments/Effects';
 
-import { INITIAL_MASK_ADJUSTMENTS, ADJUSTMENT_SECTIONS } from '../../../App';
-import { useContextMenu } from '../../../context/ContextMenuContext';
+import { INITIAL_MASK_ADJUSTMENTS, ADJUSTMENT_SECTIONS } from '@src/App';
+import { useContextMenu } from '@src/context/ContextMenuContext';
 
 const MASK_TYPE_CONFIG = {
   radial: {

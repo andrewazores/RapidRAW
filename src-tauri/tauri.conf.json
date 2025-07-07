@@ -16,13 +16,15 @@
         "title": "RapidRAW",
         "width": 1200,
         "height": 800,
-        "transparent": true,
+        "transparent": false,
         "decorations": false
       }
     ],
     "security": {
       "csp": null,
-      "capabilities": ["default"]
+      "capabilities": [
+        "default"
+      ]
     },
     "macOSPrivateApi": true
   },

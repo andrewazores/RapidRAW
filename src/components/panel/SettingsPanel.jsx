@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ArrowLeft, Trash2, Wifi, WifiOff } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
-import Button from '../ui/Button';
-import ConfirmModal from '../modals/ConfirmModal';
-import Dropdown from '../ui/Dropdown';
-import Input from '../ui/Input';
-import { THEMES, DEFAULT_THEME_ID } from '../../themes';
-import { WINDOW_CONTROLS, DEFAULT_WINDOW_CONTROLS } from '../../window_controls';
+import Button from '@src/components/ui/Button';
+import ConfirmModal from '@src/components/modals/ConfirmModal';
+import Dropdown from '@src/components/ui/Dropdown';
+import Input from '@src/components/ui/Input';
+import { THEMES, DEFAULT_THEME_ID } from '@src/themes';
+import { WINDOW_CONTROLS, DEFAULT_WINDOW_CONTROLS } from '@src/window_controls';
 
 const resolutions = [
   { value: 720, label: '720px' },

@@ -3,7 +3,7 @@ import { save, open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { Save, CheckCircle, XCircle, Loader } from 'lucide-react';
-import Switch from '../../ui/Switch';
+import Switch from '@src/components/ui/Switch';
 
 const FILE_FORMATS = [
   { id: 'jpeg', name: 'JPEG', extensions: ['jpg', 'jpeg'] },
