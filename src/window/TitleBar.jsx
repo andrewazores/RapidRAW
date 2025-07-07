@@ -1,7 +1,7 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { WindowControls } from 'tauri-controls';
 import { Minus, Square, X } from 'lucide-react';
-import { APP, NATIVE } from '../window_controls';
+import { APP, NATIVE } from '@src/window_controls';
 
 export default function TitleBar({ controls }) {
   return (
