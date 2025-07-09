@@ -90,6 +90,7 @@ struct AppSettings {
     editor_preview_resolution: Option<u32>,
     sort_criteria: Option<SortCriteria>,
     theme: Option<String>,
+    controls: Option<String>,
     comfyui_address: Option<String>,
 }
 
