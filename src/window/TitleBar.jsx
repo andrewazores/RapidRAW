@@ -2,7 +2,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useMemo } from 'react';
 import { WindowControls } from 'tauri-controls';
 import { Minus, Square, X } from 'lucide-react';
-import { APP, MAC_OS, NATIVE } from '@src/window_controls';
+import { APP, MAC_OS } from '@src/window_controls';
 
 export default function TitleBar({ controls }) {
 
@@ -21,7 +21,7 @@ export default function TitleBar({ controls }) {
       <div className="flex items-center h-full">
         { controls == APP.value ?
             <AppControls /> :
-            <WindowControls platform={ controls == NATIVE.value ? undefined : controls } />
+            <WindowControls platform={controls} />
         }
       </div>
     );
