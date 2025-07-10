@@ -2,7 +2,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useMemo } from 'react';
 import { WindowControls } from 'tauri-controls';
 import { Minus, Square, X } from 'lucide-react';
-import { APP, MAC_OS } from '@src/window_controls';
+import { APP, MAC_OS, NATIVE } from '@src/window_controls';
 
 export default function TitleBar({ controls }) {
 
@@ -11,14 +11,14 @@ export default function TitleBar({ controls }) {
 
     // Draggable area with App Info
     a.push(
-      <div data-tauri-drag-region className="flex items-center h-full px-4">
+      <div data-tauri-drag-region className="flex items-center h-full px-4" key="title">
         <p className="text-sm font-semibold text-text-secondary">RapidRAW</p>
       </div>
     );
 
     // Window Controls
     a.push(
-      <div className="flex items-center h-full">
+      <div className="flex items-center h-full" key="controls">
         { controls == APP.value ?
             <AppControls /> :
             <WindowControls platform={controls} />
@@ -33,6 +33,9 @@ export default function TitleBar({ controls }) {
     return a;
   }, [controls]);
 
+  if (controls == NATIVE.value) {
+    return <></>;
+  }
   return (
     <div
       data-tauri-drag-region

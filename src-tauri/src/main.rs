@@ -1294,10 +1294,12 @@ fn main() {
             let settings: AppSettings = load_settings(app_handle.clone()).unwrap_or_default();
             let window_cfg = app.config().app.windows.get(0).unwrap().clone();
             let transparent = settings.transparent.unwrap_or(window_cfg.transparent);
+            let controls = settings.controls.unwrap_or(if window_cfg.decorations { "native".to_string() } else { "app".to_string() });
 
             let window = tauri::WebviewWindowBuilder::from_config(app.handle(), &window_cfg)
                 .unwrap()
                 .transparent(transparent)
+                .decorations(controls == "native".to_string())
                 .build()
                 .expect("Failed to build window");
 

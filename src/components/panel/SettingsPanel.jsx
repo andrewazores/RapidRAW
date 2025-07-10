@@ -7,7 +7,7 @@ import Dropdown from '@src/components/ui/Dropdown';
 import Switch from '@src/components/ui/Switch';
 import Input from '@src/components/ui/Input';
 import { THEMES, DEFAULT_THEME_ID } from '@src/themes';
-import { WINDOW_CONTROLS, DEFAULT_WINDOW_CONTROLS } from '@src/window_controls';
+import { WINDOW_CONTROLS, DEFAULT_WINDOW_CONTROLS, APP, NATIVE } from '@src/window_controls';
 import { relaunch } from '@tauri-apps/plugin-process';
 
 const resolutions = [
@@ -98,6 +98,31 @@ export default function SettingsPanel({ onBack, appSettings, onSettingsChange, r
       confirmText: 'Toggle Transparency',
       confirmVariant: 'primary',
     });
+  };
+
+  const executeSetControls = async (controls, restart = false) => {
+    console.log('executeSetControls', { controls, restart });
+    onSettingsChange({ ...appSettings, controls });
+    if (restart) {
+      await relaunch();
+    }
+  };
+
+  const handleSetControls = (controls) => {
+    const prevControls = appSettings.controls ?? APP.value;
+    const relaunch = prevControls === NATIVE.value || controls === NATIVE.value;
+    if (!relaunch) {
+      executeSetControls(controls, false);
+    } else {
+      setConfirmModalState({
+        isOpen: true,
+        title: 'Confirm Window Decorations',
+          message: `Are you sure you want to ${ relaunch ? 'enable' : 'disable' } native window decorations?\n\nThe application will relaunch to make this change.`,
+        onConfirm: () => executeSetControls(controls, true),
+        confirmText: 'Toggle Decorations',
+        confirmVariant: 'primary',
+      });
+    }
   };
 
   const executeClearCache = async () => {
@@ -197,7 +222,7 @@ export default function SettingsPanel({ onBack, appSettings, onSettingsChange, r
                 <Dropdown
                   options={WINDOW_CONTROLS}
                   value={appSettings?.controls ?? DEFAULT_WINDOW_CONTROLS.value}
-                  onChange={(value) => onSettingsChange({ ...appSettings, controls: value })}
+                  onChange={(value) => handleSetControls(value)}
                 />
                 <p className="text-xs text-text-secondary mt-2">
                   Change how window controls appear.
