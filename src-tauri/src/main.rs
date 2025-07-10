@@ -8,6 +8,7 @@ mod raw_processing;
 mod mask_generation;
 mod ai_processing;
 mod formats;
+mod image_loader;
 
 use std::io::Cursor;
 use std::sync::Mutex;
@@ -18,7 +19,7 @@ use std::path::Path;
 use std::process::Command;
 use std::hash::{Hash, Hasher};
 
-use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Rgba, RgbaImage, ImageFormat, GrayImage, imageops};
+use image::{DynamicImage, GenericImageView, ImageBuffer, Luma, Rgba, RgbaImage, ImageFormat, GrayImage};
 use image::codecs::jpeg::JpegEncoder;
 use tauri::{Manager, Emitter};
 use base64::{Engine as _, engine::general_purpose};
@@ -31,7 +32,7 @@ use rayon::prelude::*;
 
 use crate::image_processing::{
     get_all_adjustments_from_json, get_or_init_gpu_context, GpuContext,
-    ImageMetadata, process_and_get_dynamic_image, Crop, apply_crop, apply_rotation,
+    ImageMetadata, process_and_get_dynamic_image, Crop, apply_crop, apply_rotation, apply_flip,
 };
 use crate::file_management::get_sidecar_path;
 use crate::mask_generation::{MaskDefinition, generate_mask_bitmap};
@@ -40,7 +41,7 @@ use crate::ai_processing::{
     AiSubjectMaskParameters, run_u2netp_model, AiForegroundMaskParameters
 };
 use crate::formats::is_raw_file;
-use crate::raw_processing::develop_raw_image;
+use crate::image_loader::{load_base_image_from_bytes, composite_patches_on_image, load_and_composite};
 
 #[derive(Clone)]
 pub struct LoadedImage {
@@ -83,7 +84,7 @@ struct SortCriteria {
     order: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 struct AppSettings {
     last_root_path: Option<String>,
@@ -91,6 +92,7 @@ struct AppSettings {
     sort_criteria: Option<SortCriteria>,
     theme: Option<String>,
     controls: Option<String>,
+    transparent: Option<bool>,
     comfyui_address: Option<String>,
 }
 
@@ -127,71 +129,18 @@ struct ExportSettings {
     resize: Option<ResizeOptions>,
 }
 
-fn get_composited_image(path: &str, current_adjustments: &Value) -> anyhow::Result<DynamicImage> {
-    let file_bytes = fs::read(path)?;
-    let base_image = if is_raw_file(path) {
-        develop_raw_image(&file_bytes, false)?
-    } else {
-        image::load_from_memory(&file_bytes)?
-    };
-
-    composite_patches_on_image(&base_image, current_adjustments)
-}
-
-fn composite_patches_on_image(base_image: &DynamicImage, current_adjustments: &Value) -> anyhow::Result<DynamicImage> {
-    let patches_val = match current_adjustments.get("aiPatches") {
-        Some(val) => val,
-        None => return Ok(base_image.clone()),
-    };
-
-    let patches_arr = match patches_val.as_array() {
-        Some(arr) if !arr.is_empty() => arr,
-        _ => return Ok(base_image.clone()),
-    };
-
-    let visible_patches_b64: Vec<&str> = patches_arr
-        .par_iter()
-        .filter_map(|patch_obj| {
-            let is_visible = patch_obj.get("visible").and_then(|v| v.as_bool()).unwrap_or(true);
-            if is_visible {
-                patch_obj.get("patchDataBase64").and_then(|v| v.as_str())
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    if visible_patches_b64.is_empty() {
-        return Ok(base_image.clone());
+impl Default for AppSettings {
+    fn default() -> Self {
+        Self {
+            last_root_path: None,
+            editor_preview_resolution: Some(1920),
+            sort_criteria: None,
+            theme: Some("dark".to_string()),
+            controls: Some("app".to_string()),
+            transparent: Some(true),
+            comfyui_address: None,
+        }
     }
-
-    let patch_layers: anyhow::Result<Vec<RgbaImage>> = visible_patches_b64
-        .par_iter()
-        .map(|&b64_data| {
-            let png_bytes = general_purpose::STANDARD.decode(b64_data)?;
-            let patch_layer = image::load_from_memory(&png_bytes)?;
-            Ok(patch_layer.to_rgba8())
-        })
-        .collect();
-
-    let patch_layers = patch_layers?;
-    let mut composited_rgba = base_image.to_rgba8();
-    for patch_layer in &patch_layers {
-        imageops::overlay(&mut composited_rgba, patch_layer, 0, 0);
-    }
-
-    Ok(DynamicImage::ImageRgba8(composited_rgba))
-}
-
-fn apply_flip(image: DynamicImage, horizontal: bool, vertical: bool) -> DynamicImage {
-    let mut img = image;
-    if horizontal {
-        img = img.fliph();
-    }
-    if vertical {
-        img = img.flipv();
-    }
-    img
 }
 
 fn apply_all_transformations(
@@ -333,11 +282,8 @@ async fn load_image(path: String, state: tauri::State<'_, AppState>) -> Result<L
     };
 
     let file_bytes = fs::read(&path).map_err(|e| e.to_string())?;
-    let pristine_img = if is_raw_file(&path) {
-        develop_raw_image(&file_bytes, false).map_err(|e| e.to_string())?
-    } else {
-        image::load_from_memory(&file_bytes).map_err(|e| e.to_string())?
-    };
+    let pristine_img = load_base_image_from_bytes(&file_bytes, &path, false)
+        .map_err(|e| e.to_string())?;
 
     let (orig_width, orig_height) = pristine_img.dimensions();
     let is_raw = is_raw_file(&path);
@@ -627,7 +573,7 @@ fn batch_export_images(
             };
             let js_adjustments = metadata.adjustments;
 
-            let base_image = get_composited_image(image_path_str, &js_adjustments)
+            let base_image = load_and_composite(image_path_str, &js_adjustments, false)
                 .map_err(|e| e.to_string())?;
             
             let (transformed_image, unscaled_crop_offset) = 
@@ -1327,53 +1273,62 @@ fn main() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let app_handle = app.handle().clone();
+
             let resource_path = app_handle.path()
                 .resolve("resources", tauri::path::BaseDirectory::Resource)
                 .expect("failed to resolve resource directory");
-
+            
             let ort_library_name = {
-                #[cfg(target_os = "windows")]
-                { "onnxruntime.dll" }
-                #[cfg(target_os = "linux")]
-                { "libonnxruntime.so" }
-                #[cfg(target_os = "macos")]
-                { "libonnxruntime.dylib" }
+                #[cfg(target_os = "windows")] { "onnxruntime.dll" }
+                #[cfg(target_os = "linux")] { "libonnxruntime.so" }
+                #[cfg(target_os = "macos")] { "libonnxruntime.dylib" }
             };
 
             let ort_library_path = resource_path.join(ort_library_name);
             std::env::set_var("ORT_DYLIB_PATH", &ort_library_path);
             println!("Set ORT_DYLIB_PATH to: {}", ort_library_path.display());
 
-            let window = app.get_webview_window("main").unwrap();
-            let app_handle = app.handle().clone();
+            let settings: AppSettings = load_settings(app_handle.clone()).unwrap_or_default();
+            let window_cfg = app.config().app.windows.get(0).unwrap().clone();
+            let transparent = settings.transparent.unwrap_or(window_cfg.transparent);
 
-            let settings: AppSettings = load_settings(app_handle).unwrap_or_default();
-            let theme = settings.theme.unwrap_or_else(|| "dark".to_string());
+            let window = tauri::WebviewWindowBuilder::from_config(app.handle(), &window_cfg)
+                .unwrap()
+                .transparent(transparent)
+                .build()
+                .expect("Failed to build window");
 
-            #[cfg(target_os = "macos")]
-            {
-                let material = if theme == "light" {
-                    NSVisualEffectMaterial::ContentBackground
-                } else {
-                    NSVisualEffectMaterial::HudWindow
-                };
-                apply_vibrancy(&window, material, None, None)
-                    .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
-            }
+            if transparent {
+                let theme = settings.theme.unwrap_or_else(|| "dark".to_string());
 
-            #[cfg(target_os = "windows")]
-            {
-                let color = if theme == "light" {
-                    Some((250, 250, 250, 150))
-                } else if theme == "muted-green" {
-                    Some((44, 56, 54, 100))
-                } else {
-                    Some((26, 29, 27, 60))
-                };
-                apply_acrylic(&window, color)
-                    .expect("Unsupported platform! 'apply_acrylic' is only supported on Windows");
+                #[cfg(target_os = "macos")]
+                {
+                    let material = if theme == "light" {
+                        NSVisualEffectMaterial::ContentBackground
+                    } else {
+                        NSVisualEffectMaterial::HudWindow
+                    };
+                    apply_vibrancy(&window, material, None, None).expect(
+                        "Unsupported platform! 'apply_vibrancy' is only supported on macOS",
+                    );
+                }
+
+                #[cfg(target_os = "windows")]
+                {
+                    let color = if theme == "light" {
+                        Some((250, 250, 250, 150))
+                    } else if theme == "muted-green" {
+                        Some((44, 56, 54, 100))
+                    } else {
+                        Some((26, 29, 27, 60))
+                    };
+                    apply_acrylic(&window, color).expect(
+                        "Unsupported platform! 'apply_acrylic' is only supported on Windows",
+                    );
+                }
             }
 
             Ok(())

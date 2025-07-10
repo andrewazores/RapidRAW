@@ -46,6 +46,13 @@ export const INITIAL_MASK_ADJUSTMENTS = {
     luma: [{ x: 0, y: 0 }, { x: 255, y: 255 }], red: [{ x: 0, y: 0 }, { x: 255, y: 255 }],
     green: [{ x: 0, y: 0 }, { x: 255, y: 255 }], blue: [{ x: 0, y: 0 }, { x: 255, y: 255 }],
   },
+  sectionVisibility: {
+    basic: true,
+    curves: true,
+    color: true,
+    details: true,
+    effects: true,
+  },
 };
 
 export const INITIAL_ADJUSTMENTS = {
@@ -67,6 +74,13 @@ export const INITIAL_ADJUSTMENTS = {
     green: [{ x: 0, y: 0 }, { x: 255, y: 255 }], blue: [{ x: 0, y: 0 }, { x: 255, y: 255 }],
   },
   crop: null, aspectRatio: null, rotation: 0, flipHorizontal: false, flipVertical: false, masks: [], aiPatches: [],
+  sectionVisibility: {
+    basic: true,
+    curves: true,
+    color: true,
+    details: true,
+    effects: true,
+  },
 };
 
 const normalizeLoadedAdjustments = (loadedAdjustments) => {
@@ -81,6 +95,10 @@ const normalizeLoadedAdjustments = (loadedAdjustments) => {
         ...maskAdjustments,
         hsl: { ...INITIAL_MASK_ADJUSTMENTS.hsl, ...(maskAdjustments.hsl || {}) },
         curves: { ...INITIAL_MASK_ADJUSTMENTS.curves, ...(maskAdjustments.curves || {}) },
+        sectionVisibility: {
+          ...INITIAL_MASK_ADJUSTMENTS.sectionVisibility,
+          ...(maskAdjustments.sectionVisibility || {})
+        },
       }
     };
   });
@@ -97,6 +115,10 @@ const normalizeLoadedAdjustments = (loadedAdjustments) => {
     curves: { ...INITIAL_ADJUSTMENTS.curves, ...(loadedAdjustments.curves || {}) },
     masks: normalizedMasks,
     aiPatches: normalizedAiPatches,
+    sectionVisibility: {
+      ...INITIAL_ADJUSTMENTS.sectionVisibility,
+      ...(loadedAdjustments.sectionVisibility || {})
+    },
   };
 };
 
@@ -108,7 +130,7 @@ export const COPYABLE_ADJUSTMENT_KEYS = [
   'clarity', 'dehaze', 'structure',
   'vignetteAmount', 'vignetteMidpoint', 'vignetteRoundness', 'vignetteFeather',
   'grainAmount', 'grainSize', 'grainRoughness',
-  'hsl', 'curves',
+  'hsl', 'curves', 'sectionVisibility',
 ];
 
 export const ADJUSTMENT_SECTIONS = {
@@ -164,6 +186,7 @@ function App() {
   const [imageList, setImageList] = useState([]);
   const [imageRatings, setImageRatings] = useState({});
   const [sortCriteria, setSortCriteria] = useState({ key: 'name', order: 'asc' });
+  const [filterCriteria, setFilterCriteria] = useState({ rating: 0 });
   const [selectedImage, setSelectedImage] = useState(null);
   const [multiSelectedPaths, setMultiSelectedPaths] = useState([]);
   const [libraryActivePath, setLibraryActivePath] = useState(null);
@@ -187,8 +210,6 @@ function App() {
   const [activeRightPanel, setActiveRightPanel] = useState('adjustments');
   const [activeMaskId, setActiveMaskId] = useState(null);
   const [zoom, setZoom] = useState(1);
-  const [spaceZoomActive, setSpaceZoomActive] = useState(false);
-  const [zoomBeforeSpace, setZoomBeforeSpace] = useState(1);
   const [renderedRightPanel, setRenderedRightPanel] = useState(activeRightPanel);
   const [collapsibleSectionsState, setCollapsibleSectionsState] = useState({ basic: true, curves: true, color: false, details: false, effects: false });
   const [isLibraryExportPanelVisible, setIsLibraryExportPanelVisible] = useState(false);
@@ -390,17 +411,28 @@ function App() {
   };
 
   const sortedImageList = useMemo(() => {
-    const list = [...imageList];
+    const filteredList = imageList.filter(image => {
+      if (filterCriteria.rating > 0) {
+        const rating = imageRatings[image.path] || 0;
+        if (filterCriteria.rating === 5) {
+          return rating === 5;
+        }
+        return rating >= filterCriteria.rating;
+      }
+      return true;
+    });
+
+    const list = [...filteredList];
     list.sort((a, b) => {
         const { key, order } = sortCriteria;
         let comparison = 0;
-        if (key === 'date') comparison = a.modified - b.modified; 
+        if (key === 'date') comparison = a.modified - b.modified;
         else if (key === 'rating') comparison = (imageRatings[a.path] || 0) - (imageRatings[b.path] || 0);
         else comparison = a.path.localeCompare(b.path);
         return order === 'asc' ? comparison : -comparison;
     });
     return list;
-  }, [imageList, sortCriteria, imageRatings]);
+  }, [imageList, sortCriteria, imageRatings, filterCriteria]);
 
   const applyAdjustments = useCallback(debounce((currentAdjustments) => {
     if (!selectedImage?.isReady) return;
@@ -712,48 +744,16 @@ function App() {
 
   const handleZoomChange = useCallback((newZoomValue) => {
     isProgrammaticZoom.current = true;
-    if (transformWrapperRef.current) {
-      const wrapperInstance = transformWrapperRef.current;
-      const { setTransform, state: currentTransformState, instance: rzpInstance } = wrapperInstance;
-      
-      if (typeof setTransform !== 'function') {
-        console.error("setTransform is not a function on transformWrapperRef.current");
-        return;
-      }
-      
-      const container = rzpInstance?.wrapperComponent;
-      if (container && container.clientWidth > 0 && container.clientHeight > 0 && currentTransformState) {
-        const { clientWidth: viewportWidth, clientHeight: viewportHeight } = container;
-        const { scale: currentScale, positionX: currentPanX, positionY: currentPanY } = currentTransformState;
-
-        if (currentScale === newZoomValue) {
-          setTimeout(() => { isProgrammaticZoom.current = false; }, 150);
-          return;
-        }
-
-        const viewportCenterX = viewportWidth / 2;
-        const viewportCenterY = viewportHeight / 2;
-
-        const scaleRatio = newZoomValue / currentScale;
-
-        const newPanX = viewportCenterX - (viewportCenterX - currentPanX) * scaleRatio;
-        const newPanY = viewportCenterY - (viewportCenterY - currentPanY) * scaleRatio;
-
-        setTransform(newPanX, newPanY, newZoomValue, 100, 'easeOut');
-      } else {
-        const fallbackX = currentTransformState ? currentTransformState.positionX : 0;
-        const fallbackY = currentTransformState ? currentTransformState.positionY : 0;
-        setTransform(fallbackX, fallbackY, newZoomValue, 100, 'easeOut');
-      }
-    }
-    setTimeout(() => { isProgrammaticZoom.current = false; }, 150);
+    setZoom(newZoomValue);
   }, []);
 
   const handleUserTransform = useCallback((transformState) => {
-    setZoom(transformState.scale);
-    if (!isProgrammaticZoom.current) {
-        setSpaceZoomActive(false);
+    if (isProgrammaticZoom.current) {
+      isProgrammaticZoom.current = false;
+      return;
     }
+
+    setZoom(transformState.scale);
   }, []);
 
   const handleImageSelect = useCallback((path) => {
@@ -805,13 +805,10 @@ function App() {
         }
         if (key === ' ' && !isCtrl) {
             event.preventDefault();
-            if (spaceZoomActive) {
-                handleZoomChange(zoomBeforeSpace);
-                setSpaceZoomActive(false);
+            if (Math.abs(zoom - 2) < 0.01) {
+                handleZoomChange(1);
             } else {
-                setZoomBeforeSpace(zoom);
                 handleZoomChange(2);
-                setSpaceZoomActive(true);
             }
             return;
         }
@@ -833,7 +830,6 @@ function App() {
                 const newZoom = key === 'arrowup' ? zoom + zoomStep : zoom - zoomStep;
                 const minZoom = activeRightPanel === 'crop' ? 0.4 : 0.7;
                 handleZoomChange(Math.max(minZoom, Math.min(newZoom, 10)));
-                setSpaceZoomActive(false);
             } else {
                 const isNext = key === 'arrowright';
                 const currentIndex = sortedImageList.findIndex(img => img.path === selectedImage.path);
@@ -876,8 +872,10 @@ function App() {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [ sortedImageList, selectedImage, undo, redo, isFullScreen, handleToggleFullScreen, handleBackToLibrary, handleRightPanelSelect, handleRate, handleDeleteSelected, handleCopyAdjustments, handlePasteAdjustments, multiSelectedPaths, copiedFilePaths, handlePasteFiles, libraryActivePath, handleImageSelect, zoom, spaceZoomActive, zoomBeforeSpace, handleZoomChange, customEscapeHandler, activeMaskId, aiTool ]);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [ sortedImageList, selectedImage, undo, redo, isFullScreen, handleToggleFullScreen, handleBackToLibrary, handleRightPanelSelect, handleRate, handleDeleteSelected, handleCopyAdjustments, handlePasteAdjustments, multiSelectedPaths, copiedFilePaths, handlePasteFiles, libraryActivePath, handleImageSelect, zoom, handleZoomChange, customEscapeHandler, activeMaskId, aiTool ]);
 
   useEffect(() => {
     let isEffectActive = true;
@@ -997,7 +995,15 @@ function App() {
             return currentSelected;
           });
           
-          let initialAdjusts = INITIAL_ADJUSTMENTS;
+          let initialAdjusts;
+          if (loadImageResult.metadata.adjustments && !loadImageResult.metadata.adjustments.is_null) {
+            initialAdjusts = normalizeLoadedAdjustments(loadImageResult.metadata.adjustments);
+          } else {
+            initialAdjusts = {
+              ...INITIAL_ADJUSTMENTS,
+              aspectRatio: loadImageResult.width / loadImageResult.height,
+            };
+          }
           if (loadImageResult.metadata.adjustments && !loadImageResult.metadata.adjustments.is_null) {
             initialAdjusts = normalizeLoadedAdjustments(loadImageResult.metadata.adjustments);
           }
@@ -1197,6 +1203,7 @@ function App() {
               onSelectMask={setActiveMaskId}
               transformWrapperRef={transformWrapperRef}
               onZoomed={handleUserTransform}
+              targetZoom={zoom}
               onContextMenu={handleEditorContextMenu}
               onUndo={undo}
               onRedo={redo}
@@ -1298,6 +1305,8 @@ function App() {
             onClearSelection={handleClearSelection}
             sortCriteria={sortCriteria}
             setSortCriteria={setSortCriteria}
+            filterCriteria={filterCriteria}
+            setFilterCriteria={setFilterCriteria}
             onSettingsChange={handleSettingsChange}
             onLibraryRefresh={handleLibraryRefresh}
             theme={theme}

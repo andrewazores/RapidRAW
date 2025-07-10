@@ -19,6 +19,9 @@ export default function Filmstrip({
     if (!element) return;
 
     const onWheel = (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        return;
+      }
       e.preventDefault();
       element.scrollLeft += e.deltaY;
     };
@@ -26,7 +29,9 @@ export default function Filmstrip({
     element.addEventListener('wheel', onWheel, { passive: false });
 
     return () => {
-      element.removeEventListener('wheel', onWheel);
+      if (element) {
+        element.removeEventListener('wheel', onWheel);
+      }
     };
   }, []);
 
@@ -75,10 +80,6 @@ export default function Filmstrip({
               <motion.div
                 key={path}
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onImageSelect(path, e);

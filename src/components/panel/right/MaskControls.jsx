@@ -53,6 +53,16 @@ export default function MaskControls({ editingMask, updateMask, brushSettings, s
   const analyzingTimeoutRef = useRef(null);
 
   useEffect(() => {
+    setCollapsibleState({
+      basic: true,
+      curves: false,
+      color: false,
+      details: false,
+      effects: false,
+    });
+  }, [editingMask?.id]);
+
+  useEffect(() => {
     if (isGeneratingAiMask) {
       analyzingTimeoutRef.current = setTimeout(() => {
         setShowAnalyzingMessage(true);
@@ -85,6 +95,19 @@ export default function MaskControls({ editingMask, updateMask, brushSettings, s
     setCollapsibleState(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const handleToggleVisibility = (sectionName) => {
+    const currentAdjustments = editingMask.adjustments;
+    const currentVisibility = currentAdjustments.sectionVisibility || INITIAL_MASK_ADJUSTMENTS.sectionVisibility;
+    const newAdjustments = {
+      ...currentAdjustments,
+      sectionVisibility: {
+        ...currentVisibility,
+        [sectionName]: !currentVisibility[sectionName],
+      }
+    };
+    updateMask(editingMask.id, { ...editingMask, adjustments: newAdjustments });
+  };
+
   const handleParameterChange = (key, value) => {
     updateMask(editingMask.id, { ...editingMask, parameters: { ...editingMask.parameters, [key]: value } });
   };
@@ -112,7 +135,11 @@ export default function MaskControls({ editingMask, updateMask, brushSettings, s
 
     const handlePaste = () => {
       if (!copiedSectionAdjustments || copiedSectionAdjustments.section !== sectionName) return;
-      setMaskAdjustments(prev => ({ ...prev, ...copiedSectionAdjustments.values }));
+      setMaskAdjustments(prev => ({
+        ...prev,
+        ...copiedSectionAdjustments.values,
+        sectionVisibility: { ...(prev.sectionVisibility || INITIAL_MASK_ADJUSTMENTS.sectionVisibility), [sectionName]: true }
+      }));
     };
 
     const handleReset = () => {
@@ -120,7 +147,11 @@ export default function MaskControls({ editingMask, updateMask, brushSettings, s
       for (const key of sectionKeys) {
         resetValues[key] = JSON.parse(JSON.stringify(INITIAL_MASK_ADJUSTMENTS[key]));
       }
-      setMaskAdjustments(prev => ({ ...prev, ...resetValues }));
+      setMaskAdjustments(prev => ({
+        ...prev,
+        ...resetValues,
+        sectionVisibility: { ...(prev.sectionVisibility || INITIAL_MASK_ADJUSTMENTS.sectionVisibility), [sectionName]: true }
+      }));
     };
 
     const isPasteAllowed = copiedSectionAdjustments && copiedSectionAdjustments.section === sectionName;
@@ -137,10 +168,17 @@ export default function MaskControls({ editingMask, updateMask, brushSettings, s
   };
 
   const isAiMask = editingMask.type === 'ai-subject' || editingMask.type === 'ai-foreground';
+  const sectionVisibility = editingMask.adjustments.sectionVisibility || INITIAL_MASK_ADJUSTMENTS.sectionVisibility;
 
   return (
     <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-2">
-      <CollapsibleSection title="Mask Settings" isOpen={isSettingsSectionOpen} onToggle={() => setSettingsSectionOpen(prev => !prev)}>
+      <CollapsibleSection
+        title="Mask Settings"
+        isOpen={isSettingsSectionOpen}
+        onToggle={() => setSettingsSectionOpen(prev => !prev)}
+        isContentVisible={true}
+        canToggleVisibility={false}
+      >
         <div className="space-y-4">
           {isAiMask && (
             <>
@@ -166,25 +204,36 @@ export default function MaskControls({ editingMask, updateMask, brushSettings, s
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Basic" isOpen={collapsibleState.basic} onToggle={() => handleToggleSection('basic')} onContextMenu={(e) => handleSectionContextMenu(e, 'basic')}>
-        <BasicAdjustments adjustments={editingMask.adjustments} setAdjustments={setMaskAdjustments} />
-      </CollapsibleSection>
+      {Object.keys(ADJUSTMENT_SECTIONS).map(sectionName => {
+        const SectionComponent = {
+          basic: BasicAdjustments,
+          curves: CurveGraph,
+          color: ColorPanel,
+          details: DetailsPanel,
+          effects: EffectsPanel,
+        }[sectionName];
 
-      <CollapsibleSection title="Curves" isOpen={collapsibleState.curves} onToggle={() => handleToggleSection('curves')} onContextMenu={(e) => handleSectionContextMenu(e, 'curves')}>
-        <CurveGraph adjustments={editingMask.adjustments} setAdjustments={setMaskAdjustments} histogram={histogram} />
-      </CollapsibleSection>
+        const title = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
 
-      <CollapsibleSection title="Color" isOpen={collapsibleState.color} onToggle={() => handleToggleSection('color')} onContextMenu={(e) => handleSectionContextMenu(e, 'color')}>
-        <ColorPanel adjustments={editingMask.adjustments} setAdjustments={setMaskAdjustments} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Details" isOpen={collapsibleState.details} onToggle={() => handleToggleSection('details')} onContextMenu={(e) => handleSectionContextMenu(e, 'details')}>
-        <DetailsPanel adjustments={editingMask.adjustments} setAdjustments={setMaskAdjustments} />
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Effects" isOpen={collapsibleState.effects} onToggle={() => handleToggleSection('effects')} onContextMenu={(e) => handleSectionContextMenu(e, 'effects')}>
-        <EffectsPanel adjustments={editingMask.adjustments} setAdjustments={setMaskAdjustments} isForMask={true} />
-      </CollapsibleSection>
+        return (
+          <CollapsibleSection
+            key={sectionName}
+            title={title}
+            isOpen={collapsibleState[sectionName]}
+            onToggle={() => handleToggleSection(sectionName)}
+            onContextMenu={(e) => handleSectionContextMenu(e, sectionName)}
+            isContentVisible={sectionVisibility[sectionName]}
+            onToggleVisibility={() => handleToggleVisibility(sectionName)}
+          >
+            <SectionComponent
+              adjustments={editingMask.adjustments}
+              setAdjustments={setMaskAdjustments}
+              histogram={histogram}
+              isForMask={sectionName === 'effects'}
+            />
+          </CollapsibleSection>
+        );
+      })}
     </div>
   );
 }

@@ -49,7 +49,7 @@ jobs:
           cache: 'npm'
 
       - name: Install additional system dependencies (Linux)
-        if: startsWith(inputs.platform, 'ubuntu')
+        if: startsWith(inputs.platform, 'ubuntu-22')
         run: |-
           sudo apt-get update
           sudo apt-get install -y \
@@ -62,11 +62,20 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev
 
-      - name: Apply patches (Linux)
-        if: startsWith(inputs.platform, 'ubuntu')
+      - name: Install additional system dependencies (Linux)
+        if: startsWith(inputs.platform, 'ubuntu-24')
         run: |-
-          find patches/linux -type f -executable -exec sh {} \;
-          find patches/linux -type f -iname "*.patch" -exec sh -c 'cat {} | patch -p1' \;
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-0=2.44.0-2 \
+            libwebkit2gtk-4.1-dev=2.44.0-2 \
+            libjavascriptcoregtk-4.1-0=2.44.0-2 \
+            libjavascriptcoregtk-4.1-dev=2.44.0-2 \
+            gir1.2-javascriptcoregtk-4.1=2.44.0-2 \
+            gir1.2-webkit2-4.1=2.44.0-2 \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
 
       - name: Install frontend dependencies
         run: npm install
@@ -101,7 +110,7 @@ jobs:
           done
 
       - name: Upload binaries
-        if: "!startsWith(inputs.platform, 'windows')"
+        if: ${{ !startsWith(inputs.platform, 'windows') }}
         run: |
           find src-tauri/target/${{ inputs.target || 'release' }} -type f -name "*.rpm" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" | while read -r file; do
             name=$(basename "$file")
