@@ -101,7 +101,6 @@ export default function SettingsPanel({ onBack, appSettings, onSettingsChange, r
   };
 
   const executeSetControls = async (controls, restart = false) => {
-    console.log('executeSetControls', { controls, restart });
     onSettingsChange({ ...appSettings, controls });
     if (restart) {
       await relaunch();

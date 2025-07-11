@@ -146,6 +146,9 @@ impl Default for AppSettings {
             editor_preview_resolution: Some(1920),
             sort_criteria: None,
             theme: Some("dark".to_string()),
+            #[cfg(target_os = "windows")]
+            controls: Some("app".to_string()),
+            #[cfg(not(target_os = "windows"))]
             controls: Some("app".to_string()),
             transparent: Some(true),
             comfyui_address: None,
