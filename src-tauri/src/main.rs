@@ -156,6 +156,7 @@ impl Default for AppSettings {
             transparent: Some(false),
             #[cfg(not(target_os = "linux"))]
             transparent: Some(true),
+
             comfyui_address: None,
             last_folder_state: None,
         }
