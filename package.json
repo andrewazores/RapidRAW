@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "tauri": "tauri",
-    "start": "tauri dev"
+    "start": "RUST_LOG=debug RUST_BACKTRACE=1 tauri dev"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.5.0",

@@ -435,7 +435,7 @@ fn generate_uncropped_preview(
         let patched_image = match composite_patches_on_image(&loaded_image.image, &adjustments_clone) {
             Ok(img) => img,
             Err(e) => {
-                eprintln!("Failed to composite patches for uncropped preview: {}", e);
+                log::error!("Failed to composite patches for uncropped preview: {}", e);
                 loaded_image.image
             },
         };
@@ -628,7 +628,7 @@ async fn batch_export_images(
 
         for (i, image_path_str) in paths.iter().enumerate() {
             if app_handle.state::<AppState>().export_task_handle.lock().unwrap().is_none() {
-                println!("Export cancelled during batch processing.");
+                log::debug!("Export cancelled during batch processing.");
                 let _ = app_handle.emit("export-cancelled", ());
                 return;
             }
@@ -713,7 +713,7 @@ async fn batch_export_images(
             })();
 
             if let Err(e) = processing_result {
-                eprintln!("Failed to export {}: {}", image_path_str, e);
+                log::error!("Failed to export {}: {}", image_path_str, e);
                 let _ = app_handle.emit("export-error", e);
                 *app_handle.state::<AppState>().export_task_handle.lock().unwrap() = None;
                 return;
@@ -733,7 +733,7 @@ async fn batch_export_images(
 fn cancel_export(state: tauri::State<AppState>) -> Result<(), String> {
     if let Some(handle) = state.export_task_handle.lock().unwrap().take() {
         handle.abort();
-        println!("Export task cancellation requested.");
+        log::debug!("Export task cancellation requested.");
     } else {
         return Err("No export task is currently running.".to_string());
     }
@@ -1085,7 +1085,7 @@ fn apply_auto_adjustments_to_paths(paths: Vec<String>, app_handle: tauri::AppHan
             if let Ok(json_string) = serde_json::to_string_pretty(&metadata) { let _ = std::fs::write(sidecar_path, json_string); }
             Ok(())
         })();
-        if let Err(e) = result { eprintln!("Failed to apply auto adjustments to {}: {}", path, e); }
+        if let Err(e) = result { log::error!("Failed to apply auto adjustments to {}: {}", path, e); }
     });
     thread::spawn(move || { let _ = file_management::generate_thumbnails_progressive(paths, app_handle); });
     Ok(())
@@ -1246,7 +1246,7 @@ fn clear_all_sidecars(root_path: String) -> Result<usize, String> {
                     if fs::remove_file(path).is_ok() {
                         deleted_count += 1;
                     } else {
-                        eprintln!("Failed to delete sidecar file: {:?}", path);
+                        log::error!("Failed to delete sidecar file: {:?}", path);
                     }
                 }
             }
@@ -1423,8 +1423,27 @@ fn get_supported_file_types() -> Result<serde_json::Value, String> {
 }
 
 fn main() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::new().build())
+    let mut builder = tauri::Builder::default();
+
+    #[cfg(debug_assertions)]
+    {
+        let devtools = tauri_plugin_devtools::init();
+        builder = builder.plugin(devtools);
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        env_logger::init();
+        use tauri_plugin_log::{Builder, Target, TargetKind};
+        let log_plugin = Builder::default()
+            .targets([
+                Target::new(TargetKind::Stderr),
+                Target::new(TargetKind::LogDir { file_name: Some("logs".to_string()) }),
+            ])
+            .build();
+        builder = builder.plugin(log_plugin);
+    }
+
+    builder
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
@@ -1444,7 +1463,7 @@ fn main() {
 
             let ort_library_path = resource_path.join(ort_library_name);
             std::env::set_var("ORT_DYLIB_PATH", &ort_library_path);
-            println!("Set ORT_DYLIB_PATH to: {}", ort_library_path.display());
+            log::debug!("Set ORT_DYLIB_PATH to: {}", ort_library_path.display());
 
             let settings: AppSettings = load_settings(app_handle.clone()).unwrap_or_default();
             let window_cfg = app.config().app.windows.get(0).unwrap().clone();
