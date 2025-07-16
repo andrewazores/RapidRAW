@@ -1424,6 +1424,7 @@ fn get_supported_file_types() -> Result<serde_json::Value, String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
