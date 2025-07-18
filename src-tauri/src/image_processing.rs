@@ -819,21 +819,21 @@ pub fn perform_auto_analysis(image: &DynamicImage) -> AutoAdjustmentResults {
         }
     }
 
-    println!("\n--- Auto Adjustments Analysis ---");
-    println!("Tonal Range: black_point={:.1}, white_point={:.1}, mid_point={:.1}, range={:.1}", black_point, white_point, mid_point, range);
-    println!("Distribution: shadow_percent={:.2}%, highlight_percent={:.2}%", shadow_percent * 100.0, highlight_percent * 100.0);
-    println!("White Balance Trigger: bright_r={:.1}, bright_g={:.1}, bright_b={:.1}", bright_r, bright_g, bright_b);
-    println!("Saturation: mean_saturation={:.3}, dull_pixel_percent={:.2}%", mean_saturation, dull_pixel_percent * 100.0);
-    println!("Dehaze Trigger: range < 128.0 ({}), mean_saturation < 0.15 ({})", range < 128.0, mean_saturation < 0.15);
-    println!("Vignette: center_luma={:.3}, edge_luma={:.3}", avg_center_luma, avg_edge_luma);
-    println!("---------------------------------");
-    println!("Calculated Values (pre-clamp):");
-    println!("  Exposure: {:.2}, Contrast: {:.2}", exposure, contrast);
-    println!("  Highlights: {:.2}, Shadows: {:.2}", highlights, shadows);
-    println!("  Temperature: {:.2}, Tint: {:.2}", temperature, tint);
-    println!("  Vibrance: {:.2}, Dehaze: {:.2}", vibrancy, dehaze);
-    println!("  Vignette: {:.2}", vignette_amount);
-    println!("---------------------------------\n");
+    log::debug!("\n--- Auto Adjustments Analysis ---");
+    log::debug!("Tonal Range: black_point={:.1}, white_point={:.1}, mid_point={:.1}, range={:.1}", black_point, white_point, mid_point, range);
+    log::debug!("Distribution: shadow_percent={:.2}%, highlight_percent={:.2}%", shadow_percent * 100.0, highlight_percent * 100.0);
+    log::debug!("White Balance Trigger: bright_r={:.1}, bright_g={:.1}, bright_b={:.1}", bright_r, bright_g, bright_b);
+    log::debug!("Saturation: mean_saturation={:.3}, dull_pixel_percent={:.2}%", mean_saturation, dull_pixel_percent * 100.0);
+    log::debug!("Dehaze Trigger: range < 128.0 ({}), mean_saturation < 0.15 ({})", range < 128.0, mean_saturation < 0.15);
+    log::debug!("Vignette: center_luma={:.3}, edge_luma={:.3}", avg_center_luma, avg_edge_luma);
+    log::debug!("---------------------------------");
+    log::debug!("Calculated Values (pre-clamp):");
+    log::debug!("  Exposure: {:.2}, Contrast: {:.2}", exposure, contrast);
+    log::debug!("  Highlights: {:.2}, Shadows: {:.2}", highlights, shadows);
+    log::debug!("  Temperature: {:.2}, Tint: {:.2}", temperature, tint);
+    log::debug!("  Vibrance: {:.2}, Dehaze: {:.2}", vibrancy, dehaze);
+    log::debug!("  Vignette: {:.2}", vignette_amount);
+    log::debug!("---------------------------------\n");
 
     AutoAdjustmentResults {
         exposure: exposure.clamp(-100.0, 100.0),

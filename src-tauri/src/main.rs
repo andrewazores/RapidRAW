@@ -735,7 +735,7 @@ fn write_image_with_metadata(
 
     let original_path = std::path::Path::new(original_path_str);
     if !original_path.exists() {
-        eprintln!("Original file not found, cannot copy metadata: {}", original_path_str);
+        log::error!("Original file not found, cannot copy metadata: {}", original_path_str);
         return Ok(());
     }
 
@@ -782,10 +782,10 @@ fn write_image_with_metadata(
         metadata.set_tag(ExifTag::Orientation(vec![1u16]));
 
         if metadata.write_to_vec(image_bytes, file_type).is_err() {
-            eprintln!("Failed to write metadata to image vector for {}", original_path_str);
+            log::error!("Failed to write metadata to image vector for {}", original_path_str);
         }
     } else {
-        eprintln!("Failed to read metadata from original file: {}", original_path_str);
+        log::error!("Failed to read metadata from original file: {}", original_path_str);
     }
 
     Ok(())

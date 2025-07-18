@@ -177,7 +177,7 @@ fn scan_dir_recursive(path: &Path) -> Result<Vec<FolderNode>, std::io::Error> {
     let entries = match fs::read_dir(path) {
         Ok(entries) => entries,
         Err(e) => {
-            eprintln!("Could not scan directory '{}': {}", path.display(), e);
+            log::error!("Could not scan directory '{}': {}", path.display(), e);
             return Ok(Vec::new());
         }
     };
@@ -878,7 +878,7 @@ pub fn apply_auto_adjustments_to_paths(
             Ok(())
         })();
         if let Err(e) = result {
-            eprintln!("Failed to apply auto adjustments to {}: {}", path, e);
+            log::error!("Failed to apply auto adjustments to {}: {}", path, e);
         }
     });
     thread::spawn(move || {
@@ -1021,7 +1021,7 @@ pub fn clear_all_sidecars(root_path: String) -> Result<usize, String> {
                     if fs::remove_file(path).is_ok() {
                         deleted_count += 1;
                     } else {
-                        eprintln!("Failed to delete sidecar file: {:?}", path);
+                        log::error!("Failed to delete sidecar file: {:?}", path);
                     }
                 }
             }
