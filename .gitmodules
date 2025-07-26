@@ -1,6 +1,3 @@
-[submodule "src-tauri/-f"]
-	path = src-tauri/-f
-	url = https://github.com/dnglab/dnglab
 [submodule "src-tauri/dnglab"]
 	path = src-tauri/dnglab
 	url = https://github.com/dnglab/dnglab
