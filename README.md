@@ -328,10 +328,14 @@ If you want to build the project yourself, you'll need to have [Rust](https://ww
 git clone https://github.com/CyberTimon/RapidRAW.git
 cd RapidRAW
 
-# 2. Install frontend dependencies
+# 2. Initialize `dnglab/rawler` git submodule
+git submodule init
+git submodule update
+
+# 3. Install frontend dependencies
 npm install
 
-# 3. Build and run the application in development mode
+# 4. Build and run the application in development mode
 # Use --release for a build that runs much faster (image loading etc.)
 npx tauri dev --release
 ```
