@@ -1,3 +1,3 @@
 [submodule "src-tauri/dnglab"]
 	path = src-tauri/dnglab
-	url = https://github.com/CyberTimon/dnglab
+	url = https://github.com/CyberTimon/RapidRAW-DngLab
