@@ -1121,6 +1121,8 @@ fn main() {
         .setup(|app| {
             let app_handle = app.handle().clone();
 
+            println!("HELLO WORLD");
+
             let resource_path = app_handle.path()
                 .resolve("resources", tauri::path::BaseDirectory::Resource)
                 .expect("failed to resolve resource directory");
