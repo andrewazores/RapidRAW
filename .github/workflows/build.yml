@@ -46,6 +46,7 @@ jobs:
           fetch-depth: 0
           filter: tree:0
           fetch-tags: true
+          submodules: true
 
       - name: Determine Version
         id: determine-version
