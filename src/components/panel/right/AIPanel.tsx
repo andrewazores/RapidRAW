@@ -385,7 +385,7 @@ export default function AIPanel({
                     <AnimatePresence>
                       {aiPatches
                         .filter((p: AiPatch) => p.id !== deletingItemId)
-                        .map((patch: AiPatch, index: Number) => (
+                        .map((patch: AiPatch, index: number) => (
                           <motion.div
                             animate="visible"
                             className={`group p-2 rounded-lg flex items-center justify-between cursor-pointer transition-all duration-200 ${

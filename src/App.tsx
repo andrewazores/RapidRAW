@@ -905,7 +905,7 @@ function App() {
     }
 
     let finalCssVariables: any = { ...baseTheme.cssVariables };
-    let effectThemeForWindow = baseTheme.id;
+    const effectThemeForWindow = baseTheme.id;
 
     if (adaptivePalette) {
       finalCssVariables = { ...finalCssVariables, ...adaptivePalette };

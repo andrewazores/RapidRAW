@@ -268,7 +268,7 @@ export default function SettingsPanel({
       await invoke(Invokes.TestComfyuiConnection, { address: comfyUiAddress });
       setTestStatus({ testing: false, message: 'Connection successful!', success: true });
     } catch (err) {
-      setTestStatus({ testing: false, message: `Connection failed.`, success: false });
+      setTestStatus({ testing: false, message: 'Connection failed.', success: false });
       console.error('ComfyUI connection test failed:', err);
     } finally {
       setTimeout(() => setTestStatus({ testing: false, message: '', success: null }), EXECUTE_TIMEOUT);

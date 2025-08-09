@@ -161,7 +161,7 @@ export default function CropPanel({
       return;
     }
 
-    let targetRatio = preset.value;
+    const targetRatio = preset.value;
     if (activePreset === preset && targetRatio && targetRatio !== 1) {
       setAdjustments((prev: Partial<Adjustments>) => ({
         ...prev,
