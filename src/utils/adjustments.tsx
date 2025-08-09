@@ -379,7 +379,9 @@ export const INITIAL_ADJUSTMENTS: Adjustments = {
 };
 
 export const normalizeLoadedAdjustments = (loadedAdjustments: Adjustments): any => {
-  if (!loadedAdjustments) {return INITIAL_ADJUSTMENTS;}
+  if (!loadedAdjustments) {
+    return INITIAL_ADJUSTMENTS;
+  }
 
   const normalizedMasks = (loadedAdjustments.masks || []).map((maskContainer: MaskContainer) => {
     const containerAdjustments = maskContainer.adjustments || {};
