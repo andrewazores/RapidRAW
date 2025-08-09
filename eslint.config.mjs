@@ -1,8 +1,10 @@
 import { defineConfig } from "eslint/config";
+import typeScript from '@typescript-eslint/eslint-plugin';
+import typeScriptParser from '@typescript-eslint/parser';
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
-import { fixupPluginRules } from "@eslint/compat";
-import tsParser from "@typescript-eslint/parser";
+import imports from 'eslint-plugin-import';
+import unusedImports from 'eslint-plugin-unused-imports';
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
@@ -16,8 +18,24 @@ const compat = new FlatCompat({
     allConfig: js.configs.all
 });
 
-export default defineConfig([{
-    files: ["src/**/*.ts"],
+export default defineConfig([
+  {
+    files: [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+    ],
+
+    languageOptions: {
+      parser: typeScriptParser,
+      parserOptions: {
+        "tsx": true,
+        "jsx": true,
+        "js": true,
+        "useJSXTextNode": true,
+        "project": "./tsconfig.json",
+        "tsconfigRootDir": "."
+      },
+    },
 
     extends: compat.extends(
         "eslint:recommended",
@@ -28,17 +46,15 @@ export default defineConfig([{
 
     plugins: {
         react,
-        "react-hooks": fixupPluginRules(reactHooks),
+        typeScript,
+        imports,
+        unusedImports,
     },
 
     settings: {
       react: {
         version: 'detect',
       },
-    },
-
-    languageOptions: {
-        parser: tsParser,
     },
 
     rules: {
@@ -51,4 +67,6 @@ export default defineConfig([{
 
         "@typescript-eslint/explicit-function-return-type": "off",
     },
-}]);
+  },
+  reactHooks.configs['recommended-latest'],
+]);
