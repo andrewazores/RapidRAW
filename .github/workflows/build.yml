@@ -33,6 +33,11 @@ on:
         default: ${{ github.ref }}
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run lint
+
   build:
     permissions:
       contents: write
