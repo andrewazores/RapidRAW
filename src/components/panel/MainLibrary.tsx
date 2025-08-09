@@ -225,8 +225,8 @@ function SearchInput({ indexingProgress, isIndexing, searchQuery, setSearchQuery
     isIndexing && indexingProgress.total > 0
       ? `Indexing... (${indexingProgress.current}/${indexingProgress.total})`
       : isIndexing
-      ? 'Indexing Images...'
-      : 'Search Images';
+        ? 'Indexing Images...'
+        : 'Search Images';
 
   return (
     <motion.div
@@ -593,8 +593,8 @@ function Thumbnail({
   const ringClass = isActive
     ? 'ring-2 ring-accent'
     : isSelected
-    ? 'ring-2 ring-gray-400'
-    : 'hover:ring-2 hover:ring-hover-color';
+      ? 'ring-2 ring-gray-400'
+      : 'hover:ring-2 hover:ring-hover-color';
   const colorTag = tags?.find((t: string) => t.startsWith('color:'))?.substring(6);
   const colorLabel = COLOR_LABELS.find((c: Color) => c.name === colorTag);
 
@@ -616,11 +616,7 @@ function Thumbnail({
       {data ? (
         <>
           {aspectRatio === ThumbnailAspectRatio.Contain && (
-            <img
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover blur-md scale-110"
-              src={data}
-            />
+            <img alt="" className="absolute inset-0 w-full h-full object-cover blur-md scale-110" src={data} />
           )}
           <img
             alt={path}
@@ -1004,12 +1000,12 @@ export default function MainLibrary({
             {aiModelDownloadStatus
               ? `Downloading ${aiModelDownloadStatus}...`
               : isIndexing && indexingProgress.total > 0
-              ? `Indexing images... (${indexingProgress.current}/${indexingProgress.total})`
-              : importState.status === Status.Importing &&
-                importState?.progress?.total &&
-                importState.progress.total > 0
-              ? `Importing images... (${importState.progress?.current}/${importState.progress?.total})`
-              : 'Processing images...'}
+                ? `Indexing images... (${indexingProgress.current}/${indexingProgress.total})`
+                : importState.status === Status.Importing &&
+                    importState?.progress?.total &&
+                    importState.progress.total > 0
+                  ? `Importing images... (${importState.progress?.current}/${importState.progress?.total})`
+                  : 'Processing images...'}
           </p>
           <p className="text-sm mt-2">This may take a moment.</p>
         </div>

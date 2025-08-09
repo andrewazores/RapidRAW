@@ -47,7 +47,7 @@ export const MASK_TYPES: Array<MaskType> = [
     icon: Eraser,
     name: 'Quick Erase',
     type: Mask.QuickEraser,
-},
+  },
   {
     disabled: false,
     icon: Sparkles,

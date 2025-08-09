@@ -1969,7 +1969,14 @@ function App() {
           setError(`Failed to reset adjustments: ${err}`);
         });
     },
-    [multiSelectedPaths, libraryActivePath, selectedImage, adjustments.rating, resetAdjustmentsHistory, debouncedSetHistory],
+    [
+      multiSelectedPaths,
+      libraryActivePath,
+      selectedImage,
+      adjustments.rating,
+      resetAdjustmentsHistory,
+      debouncedSetHistory,
+    ],
   );
 
   const handleImportClick = useCallback(

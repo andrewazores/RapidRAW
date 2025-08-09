@@ -47,8 +47,8 @@ const FilmstripThumbnail = ({
   const ringClass = isActive
     ? 'ring-2 ring-accent'
     : isSelected
-    ? 'ring-2 ring-gray-400'
-    : 'hover:ring-2 hover:ring-hover-color';
+      ? 'ring-2 ring-gray-400'
+      : 'hover:ring-2 hover:ring-hover-color';
 
   const imageClasses = `w-full h-full group-hover:scale-[1.02] transition-transform duration-300`;
 
