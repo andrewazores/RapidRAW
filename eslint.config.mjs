@@ -66,6 +66,7 @@ export default defineConfig([
         }],
 
         "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-explicit-any": "warn",
     },
   },
   reactHooks.configs['recommended-latest'],
